@@ -1,3 +1,6 @@
+'''
+run SAM on ade20k and avd to get the raw segments without semantic predictions.
+'''
 import skimage.measure
 import glob
 import os

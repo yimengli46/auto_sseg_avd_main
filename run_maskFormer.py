@@ -1,5 +1,6 @@
-# Copyright (c) Facebook, Inc. and its affiliates.
-# Modified by Bowen Cheng from: https://github.com/facebookresearch/detectron2/blob/master/demo/demo.py
+'''
+run maskFormer on ade20k and AVD dataset
+'''
 import argparse
 import glob
 import multiprocessing as mp

@@ -1,3 +1,9 @@
+'''
+This script reads the SAM segmentation results and MaskFormer semantic segmentation predictions.
+It determines the category of SAM segments by counting the number of pixels for each category
+in the MaskFormer predictions and selecting the class with the highest vote. The experiment is
+conducted on the AVD and ADE20K datasets.
+'''
 import glob
 import os
 import sys
