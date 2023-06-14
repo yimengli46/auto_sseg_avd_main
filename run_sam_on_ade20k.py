@@ -26,10 +26,7 @@ def show_anns(anns):
     ax.imshow(img)
 
 
-data_folder = '/projects/kosecka/Datasets/ADE20K/Semantic_Segmentation'
-saved_folder = 'output/ade20k_sam_results'
-
-sam_checkpoint = "/scratch/yli44/segment-anything/model_weights/sam_vit_h_4b8939.pth"
+sam_checkpoint = "/scratch/yli44/sseg/segment-anything/model_weights/sam_vit_h_4b8939.pth"
 model_type = "vit_h"
 
 device = "cuda"
@@ -47,9 +44,13 @@ mask_generator = SamAutomaticMaskGenerator(model=sam,
                                            min_mask_region_area=100,  # Requires open-cv to run post-processing
                                            )
 
+# run on ADE20K
+'''
+data_folder = '/projects/kosecka/Datasets/ADE20K/Semantic_Segmentation'
+saved_folder = 'output/ade20k_sam_results'
+
 img_list = np.load(f'{data_folder}/val_img_list.npy', allow_pickle=True)
 # img_list = ['000110000010101']
-
 
 for idx in range(img_list.shape[0]):
     img_dir = img_list[idx]['img']
@@ -60,16 +61,16 @@ for idx in range(img_list.shape[0]):
     H, W = image.shape[:2]
     masks = mask_generator.generate(image)
 
-    '''
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
-    ax.imshow(image)
-    show_anns(masks)
-    ax.get_xaxis().set_visible(False)
-    ax.get_yaxis().set_visible(False)
-    fig.tight_layout()
-    fig.savefig(f'output/{name}.jpg')
-    plt.close()
-    '''
+    
+    # fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
+    # ax.imshow(image)
+    # show_anns(masks)
+    # ax.get_xaxis().set_visible(False)
+    # ax.get_yaxis().set_visible(False)
+    # fig.tight_layout()
+    # fig.savefig(f'output/{name}.jpg')
+    # plt.close()
+
 
     img_mask = np.zeros((H, W), dtype=np.uint16)
     sorted_masks = sorted(masks, key=(lambda x: x['area']), reverse=True)
@@ -119,3 +120,66 @@ for idx in range(img_list.shape[0]):
     assert img_mask.min() > 0
 
     np.save(f'{saved_folder}/{name}.npy', img_mask)
+'''
+
+# run on AVD
+# '''
+data_folder = '/projects/kosecka/Datasets/AVD_annotation-main'
+saved_folder = 'output/AVD_sam_results'
+
+scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
+              'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
+              'Home_015_1', 'Home_016_1',]
+
+for scene in scene_list:
+    img_name_list = [os.path.splitext(os.path.basename(x))[0]
+                     for x in sorted(glob.glob(f'{data_folder}/{scene}/selected_images/*.jpg'))]
+
+    for img_name in img_name_list:
+        image = cv2.imread(f'{data_folder}/{scene}/selected_images/{img_name}.jpg')
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        H, W = image.shape[:2]
+        masks = mask_generator.generate(image)
+
+        img_mask = np.zeros((H, W), dtype=np.uint16)
+        sorted_masks = sorted(masks, key=(lambda x: x['area']), reverse=True)
+
+        count_mask = 1
+        for ann in sorted_masks:
+            m = ann['segmentation']
+            # color_mask = np.random.random(3)
+            img_mask[m] = count_mask
+            count_mask += 1
+
+        assert count_mask - 1 == len(sorted_masks)
+
+        instance_label, num_ins = skimage.measure.label(
+            img_mask == 0, background=0, connectivity=1, return_num=True)
+
+        for idx_ins in range(1, num_ins + 1):
+            img_mask[instance_label == idx_ins] = count_mask
+            count_mask += 1
+
+        # reformat the labels
+        unique_labels = np.unique(img_mask)
+        # mapped_values = list(range(1, len(unique_labels) + 1))
+        # dict_labels = {unique_labels[i]: mapped_values[i] for i in range(len(unique_labels))}
+
+        vis_mask = np.ones((H, W, 3))
+        # vis_mask[:, :, 3] = 0
+        for idx in unique_labels:
+            vis_mask[img_mask == idx] = np.random.random(3)
+
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
+        ax.imshow(vis_mask)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.tight_layout()
+        fig.savefig(f'{saved_folder}/{img_name}_mask.jpg')
+        plt.close()
+
+        print(f'min_mask = {img_mask.min()}')
+
+        assert img_mask.min() > 0
+
+        np.save(f'{saved_folder}/{img_name}.npy', img_mask)
