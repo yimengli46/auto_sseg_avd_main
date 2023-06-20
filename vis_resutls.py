@@ -11,18 +11,19 @@ import cv2
 import os
 import glob
 
-'''
+# '''
 saved_folder = 'output/comparison_results_ADE20K'
 data_folder = '/home/yimeng/ARGO_datasets/Datasets/ADE20K/Semantic_Segmentation'
 sam_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/ade20k_sam_results'
-sam_vote_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/vote_sam_with_maskFormer_results'
+sam_vote_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/ade20k_vote_sam_with_maskFormer_results'
 maskFormer_results_folder = '/home/yimeng/ARGO_scratch/sseg/MaskFormer/output/ade20k_maskformer_results'
 
 img_list = np.load(f'{data_folder}/val_img_list.npy', allow_pickle=True)
 
-for idx in range(img_list.shape[0]):
+for idx in range(len(img_list)):
     img_dir = img_list[idx]['img']
     anno_dir = img_list[idx]['anno']
+
     name = img_dir[18:-4]
 
     # load gt anno
@@ -78,8 +79,9 @@ for idx in range(img_list.shape[0]):
     fig.savefig(f'{saved_folder}/{name}.jpg')
     plt.close()
 
-'''
+# '''
 
+'''
 saved_folder = 'output/comparison_results_AVD'
 data_folder = '/home/yimeng/ARGO_datasets/Datasets/AVD_annotation-main'
 sam_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/AVD_sam_results'
@@ -146,3 +148,4 @@ for scene in scene_list:
         # plt.show()
         fig.savefig(f'{saved_folder}/{name}.jpg')
         plt.close()
+'''
