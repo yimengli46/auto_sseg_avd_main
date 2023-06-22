@@ -140,7 +140,7 @@ for scene in scene_list:
         sorted_bbox_idx, _ = zip(*sorted_masks)
 
         # convert all the masks into one simgle mask
-        img_mask = np.zeros((H, W), dtype=np.int16)
+        img_mask = np.zeros((H, W), dtype=np.uint16)
         for idx_bbox in list(sorted_bbox_idx):
             mask = masks[idx_bbox]
             mask_class = pred_classes[idx_bbox]
