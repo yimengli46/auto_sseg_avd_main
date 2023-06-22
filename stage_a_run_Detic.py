@@ -66,7 +66,7 @@ args = Args('lvis')
 demo = VisualizationDemo(cfg, args)  # , category_str)
 
 # ================================= initialize predictions ===============================
-data_folder = '/home/yimeng/ARGO_datasets/Datasets/AVD_annotation-main'
+data_folder = '/projects/kosecka/Datasets/AVD_annotation-main'
 saved_folder = 'output/stage_a_Detic_results'
 
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
@@ -113,5 +113,5 @@ for scene in scene_list:
         plt.title(f'avd')
 
         fig.savefig(f'{saved_folder}/{img_name}.jpg',
-                    bbox_inches='tight')
+                    bbox_inches='tight', dpi=200)
         plt.close()
