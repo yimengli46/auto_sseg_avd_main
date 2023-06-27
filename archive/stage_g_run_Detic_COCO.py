@@ -34,7 +34,7 @@ class Args:
 
 config_file = '../auto_sseg_avd_Detic/configs/Detic_LCOCOI21k_CLIP_SwinB_896b32_4x_ft4x_max-size.yaml'
 config_file = 'configs/my_Detic_config.yaml'
-confidence_threshold = 0.3
+confidence_threshold = 0.5
 opts = ['MODEL.WEIGHTS',
         '../auto_sseg_avd_Detic/models/Detic_LCOCOI21k_CLIP_SwinB_896b32_4x_ft4x_max-size.pth',
         'MODEL.ROI_BOX_HEAD.CAT_FREQ_PATH',
@@ -57,20 +57,22 @@ if True:
     cfg.MODEL.ROI_HEADS.ONE_CLASS_PER_PROPOSAL = True
 cfg.freeze()
 
-args = Args('lvis')
+args = Args('coco')
 demo = VisualizationDemo(cfg, args)  # , category_str)
 
 # ================================= initialize predictions ===============================
 data_folder = '/projects/kosecka/Datasets/AVD_annotation-main'
-saved_folder = 'output/stage_a_Detic_results'
+saved_folder = 'output/stage_g_Detic_coco_results'
 
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
               'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
               'Home_015_1', 'Home_016_1']
+# scene_list = [scene_list[0]]
 
 for scene in scene_list:
     img_name_list = [os.path.splitext(os.path.basename(x))[0]
                      for x in sorted(glob.glob(f'{data_folder}/{scene}/selected_images/*.jpg'))]
+    # img_name_list = img_name_list[:3]
 
     for img_name in img_name_list:
         print(f'img_name = {img_name}')

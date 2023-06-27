@@ -90,7 +90,6 @@ if __name__ == "__main__":
     args.config_file = '../MaskFormer/configs/ade20k-150/swin/maskformer_swin_large_IN21k_384_bs16_160k_res640.yaml'
     args.opts = ['MODEL.WEIGHTS', '../MaskFormer/model_weights/model_final_aefa3b.pkl']
 
-    # assert 1 == 2
     cfg = setup_cfg(args)
 
     demo = VisualizationDemo(cfg)
