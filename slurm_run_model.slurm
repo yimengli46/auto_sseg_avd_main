@@ -38,4 +38,5 @@ source /scratch/yli44/env_sam/bin/activate
 
 ## Run your program or script
 #python mp_stage_a_run_Detic.py
-python mp_stage_d_run_maskFormer.py
+#python mp_stage_d_run_maskFormer.py
+python stage_f_merge_outputs.py 

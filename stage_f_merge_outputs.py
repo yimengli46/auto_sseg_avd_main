@@ -187,7 +187,7 @@ for scene in scene_list:
         # ================================ merge with AVD instance result
         start_label_idx = 1500
 
-        # load SAM avd instance result
+        # load SAM avd instance result (some images do not have AVD instances)
         try:
             sseg_avd = cv2.imread(f'{stage_c_results_folder}/{img_name}_avd_instances_labels.png', cv2.IMREAD_UNCHANGED)
             mask = (sseg_avd > 0)
@@ -220,4 +220,4 @@ for scene in scene_list:
         fig.savefig(f'{saved_folder}/{img_name}_sseg.jpg')
         plt.close()
 
-        # np.save(f'{saved_folder}/{img_name}.npy', sseg_vote)
+        cv2.imwrite(f'{saved_folder}/{img_name}_labels.png', sseg_vote)
