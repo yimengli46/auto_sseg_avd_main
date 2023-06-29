@@ -87,8 +87,8 @@ sam_predictor = SamPredictor(sam)
 
 # ============================= run on AVD =======================================
 
-data_folder = '/projects/kosecka/Datasets/AVD_annotation-main'
-saved_folder = 'output/stage_b_sam_results'
+data_folder = 'data/AVD_annotation-main'
+saved_folder = 'output/stage_b_sam_results/selected_images'
 stage_a_result_folder = 'output/stage_a_Detic_results'
 
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
@@ -109,7 +109,7 @@ for scene in scene_list:
         H, W = image.shape[:2]
 
         # load Detic boxes
-        with bz2.BZ2File(f'{stage_a_result_folder}/{img_name}.pbz2', 'rb') as fp:
+        with bz2.BZ2File(f'{stage_a_result_folder}/selected_images/{img_name}.pbz2', 'rb') as fp:
             pred_dict = cPickle.load(fp)
             num_instances = pred_dict['num_instances']
             pred_boxes = pred_dict['pred_boxes'].astype(np.int32)
@@ -156,3 +156,9 @@ for scene in scene_list:
         plt.close()
 
         cv2.imwrite(f'{saved_folder}/{img_name}_mask_labels.png', img_mask)
+
+        with bz2.BZ2File(f'{saved_folder}/{img_name}_masks.pbz2', 'w') as fp:
+            cPickle.dump(
+                masks,
+                fp
+            )

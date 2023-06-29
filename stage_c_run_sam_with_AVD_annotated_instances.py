@@ -87,9 +87,9 @@ sam_predictor = SamPredictor(sam)
 
 # ============================= run on AVD =======================================
 
-data_folder = '/projects/kosecka/Datasets/AVD_annotation-main'
-saved_folder = 'output/stage_c_sam_results_with_avd_instances'
-avd_annotation_folder = '/projects/kosecka/Datasets/ActiveVisionDataset'
+data_folder = 'data/AVD_annotation-main'
+saved_folder = 'output/stage_c_sam_results_with_avd_instances/selected_images'
+avd_annotation_folder = 'data/ActiveVisionDataset'
 
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
               'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
@@ -171,3 +171,9 @@ for scene in scene_list:
         plt.close()
 
         cv2.imwrite(f'{saved_folder}/{img_name}_avd_instances_labels.png', img_mask)
+
+        with bz2.BZ2File(f'{saved_folder}/{img_name}_avd_instances_masks.pbz2', 'w') as fp:
+            cPickle.dump(
+                masks,
+                fp
+            )

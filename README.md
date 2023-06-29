@@ -49,6 +49,10 @@ mv model_final_aefa3b.pkl model_weights
 # Install sseg-sam
 cd auto_sseg_avd
 git clone https://github.com/yimengli46/sseg_sam.git
+# create soft link to the datasets
+mkdir data
+ln -s /projects/kosecka/Datasets/ActiveVisionDataset/ ActiveVisionDataset
+ln -s /projects/kosecka/Datasets/AVD_annotation-main AVD_annotation-main
 ```
 After following all the steps, your working folder structure should look like this:
 ```
@@ -58,4 +62,3 @@ auto_sseg_avd/
 				segment-anything/
 				sseg_sam/
 ```
-    
