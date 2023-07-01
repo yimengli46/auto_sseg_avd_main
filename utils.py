@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import torch
+import torchvision.ops.boxes as bops
 
 _OFF_WHITE = (1.0, 1.0, 240.0 / 255)
 _LARGE_MASK_AREA_THRESH = 120000
@@ -97,3 +99,19 @@ def draw_binary_mask(ax, binary_mask, color=None, *, edge_color=None, text=None,
                 # median is more stable than centroid
                 center = np.median((cc_labels == cid).nonzero(), axis=1)[::-1]
                 draw_text(ax, text, center, color=lighter_color)
+
+
+def comp_bbox_iou(bb1, bb2):
+    x11, y11, x12, y12 = bb1
+    x21, y21, x22, y22 = bb2
+
+    box1 = torch.tensor([[x11, y11, x12, y12]], dtype=torch.float)
+    box2 = torch.tensor([[x21, y21, x22, y22]], dtype=torch.float)
+    iou = bops.box_iou(box1, box2)
+    return iou.item()
+
+
+def comp_mask_iou(m1, m2):
+    mask_intersect = np.logical_and(m1, m2)
+    iou = mask_intersect.sum() / m1.sum()
+    return iou

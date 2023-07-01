@@ -155,7 +155,7 @@ ade20k_dict = {
 }
 
 # load lvis categories
-f = open(f'output/datasets/lvis_categories.json', "r")
+f = open(f'datasets/lvis_categories.json', "r")
 
 data = json.loads(f.read())
 
@@ -166,10 +166,23 @@ for idx in range(len(data)):
     lvis_dict[cat_id] = cat_name
 
 # load avd
-f = open(f'output/datasets/avd_instance_label_map.json', "r")
+f = open(f'datasets/avd_instance_label_map.json', "r")
 data = json.loads(f.read())
 avd_dict = {}
 for k in list(data.keys()):
     k_int = int(k)
     if k_int > 0:
         avd_dict[k_int] = data[k]
+
+UNWANTED_CLASSES = [
+    275,  # bolt
+    354,  # bottle_cap
+    535,  # doorknob
+    709,  # hinge
+    767,  # knob
+    1211,  # tape_(sticky_cloth_or_paper)
+]
+
+ALLOWED_OBJECT_OVERLAY_PAIRS = {
+    'dishtowel': ['oven']
+}
