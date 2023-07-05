@@ -1,7 +1,7 @@
 #!/bin/sh
 
 ## Give your job a name to distinguish it from other jobs you run.
-# SBATCH --job-name=run_stage_d
+# SBATCH --job-name=run_stage_b
 
 ## General partitions: all-HiPri, bigmem-HiPri   --   (12 hour limit)
 ##                     all-LoPri, bigmem-LoPri, gpuq  (5 days limit)
@@ -18,15 +18,15 @@
 #SBATCH --mail-user=yli44@gmu.edu     # Put your GMU email address here
 
 ## Specify how much memory your job needs. (2G is the default)
-#SBATCH --mem=100G        # Total memory needed per task (units: K,M,G,T)
+#SBATCH --mem=300G        # Total memory needed per task (units: K,M,G,T)
 
 ## Specify how much time your job needs. (default: see partition above)
 #SBATCH --time=5-00:00   # Total time needed for job: Days-Hours:Minutes
 
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:4
 #SBATCH --nodelist=NODE077
 
-#SBATCH --cpus-per-task 2
+#SBATCH --cpus-per-task 10
 
 ## Load the relevant modules needed for the job
 module load cuda/11.2
@@ -39,4 +39,5 @@ source /scratch/yli44/env_sam/bin/activate
 ## Run your program or script
 #python mp_stage_a_run_Detic.py
 #python mp_stage_d_run_maskFormer.py
-python stage_f_merge_outputs.py 
+#python stage_f_merge_outputs.py 
+python mp_stage_b_run_sam_with_Detic_boxes.py --j=2
