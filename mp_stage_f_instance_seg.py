@@ -225,7 +225,7 @@ def main():
                   'Home_010_1', 'Home_011_1', 'Home_013_1', 'Home_014_1', 'Home_014_2', 'Home_015_1',
                   'Home_016_1', 'Office_001_1']
 
-    with multiprocessing.Pool(processes=20) as pool:
+    with multiprocessing.Pool(processes=8) as pool:
         args0 = scene_list
         pool.map(mp_run_wrapper, list(zip(args0)))
         pool.close()

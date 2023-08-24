@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from constants import ade20k_dict, lvis_dict, avd_dict, UNWANTED_CLASSES, ALLOWED_OBJECT_OVERLAY_PAIRS
+from constants import ade20k_dict, lvis_dict, avd_dict, UNWANTED_CLASSES, ALLOWED_OBJECT_OVERLAY_PAIRS, ade20k_wanted_classes
 from utils import _OFF_WHITE, draw_text, draw_binary_mask, comp_bbox_iou, comp_mask_iou
 import _pickle as cPickle
 import bz2
@@ -112,6 +112,7 @@ def draw_binary_mask(ax, binary_mask, color=None, *, edge_color=None, text=None,
 
 # merge dataset dicts
 dataset_dict = {}
+dataset_dict[0] = 'void'
 # merge with ade20k
 start_label_idx = 0
 for k, v in ade20k_dict.items():
@@ -139,7 +140,7 @@ data_folder = 'data/AVD_annotation-main'
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
               'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
               'Home_015_1', 'Home_016_1']
-# scene_list = [scene_list[0]]
+scene_list = [scene_list[0]]
 
 for scene in scene_list:
     img_name_list = [os.path.splitext(os.path.basename(x))[0]
@@ -176,6 +177,10 @@ for scene in scene_list:
             sseg_vote[mask] = most_common_idx
 
         sseg_vote += start_label_idx
+
+        # remove unwanted ade20k classes
+        mask = np.isin(sseg_vote, ade20k_wanted_classes, invert=True)
+        sseg_vote[mask] = 0
 
         # ==================================== merge with Detic result
         # label index 0 is the background
@@ -307,7 +312,10 @@ for scene in scene_list:
         # vis_sseg_vote = np.ones((H, W, 3))
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
         ax.imshow(image)
-        unique_labels = np.unique(sseg_vote)
+        unique_labels = list(np.unique(sseg_vote))
+        if 0 in unique_labels:
+            unique_labels = unique_labels[1:]
+
         for label in unique_labels:
             binary_mask = (sseg_vote == label).astype(np.uint8)
             mask_color = np.random.random(3)

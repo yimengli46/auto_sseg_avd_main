@@ -177,6 +177,7 @@ for k in list(data.keys()):
 UNWANTED_CLASSES = [
     275,  # bolt
     354,  # bottle_cap
+    500,  # curtain
     535,  # doorknob
     709,  # hinge
     767,  # knob
@@ -186,3 +187,13 @@ UNWANTED_CLASSES = [
 ALLOWED_OBJECT_OVERLAY_PAIRS = {
     'dishtowel': ['oven']
 }
+
+ade20k_wanted_classes = [
+    1,  # : 'wall',
+    4,  # : 'floor, flooring',
+    6,  # : 'ceiling',
+    9,  # : 'windowpane, window',
+    15,  # : 'door, double door',
+    54,  # : 'stairs, steps',
+    64,  # : 'blind, screen',
+]
