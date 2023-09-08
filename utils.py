@@ -33,7 +33,7 @@ def draw_text(
         output (VisImage): image object with text drawn.
     """
     if not font_size:
-        font_size = 10
+        font_size = 30
 
     # since the text background is dark, we don't want the text to be dark
     # color = np.maximum(list(mplc.to_rgb(color)), 0.2)
@@ -115,3 +115,26 @@ def comp_mask_iou(m1, m2):
     mask_intersect = np.logical_and(m1, m2)
     iou = mask_intersect.sum() / m1.sum()
     return iou
+
+
+def compute_intersection_area_iou_to_box1(box1, box2):
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+
+    if x2 > x1 and y2 > y1:
+        intersection_area = (x2 - x1) * (y2 - y1)
+    else:
+        intersection_area = 0
+
+    iou = intersection_area / (1e-5 + (box1[2] - box1[0]) * (box1[3] - box1[1]))
+
+    return iou
+
+
+def show_mask(mask, ax, color):
+    color = np.concatenate([color, np.array([0.6])], axis=0)
+    h, w = mask.shape[-2:]
+    mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
+    ax.imshow(mask_image)

@@ -13,6 +13,7 @@ from utils import _OFF_WHITE, draw_binary_mask, comp_bbox_iou, comp_mask_iou
 import _pickle as cPickle
 import bz2
 import multiprocessing
+from constants import colormap
 
 # merge dataset dicts
 dataset_dict = {}
@@ -29,6 +30,8 @@ for k, v in lvis_dict.items():
 start_label_idx = 1500
 for k, v in avd_dict.items():
     dataset_dict[k + start_label_idx] = v
+
+COLOR = colormap(rgb=True)
 
 
 def run_semantic_segmentation(scene):
@@ -50,7 +53,7 @@ def run_semantic_segmentation(scene):
                      for x in sorted(glob.glob(f'{data_folder}/{scene}/jpg_rgb/*.jpg'))]
     # img_name_list = img_name_list[:5]
 
-    for img_name in img_name_list:
+    for img_name in img_name_list[16:]:
 
         print(f'name = {img_name}')
 
@@ -219,7 +222,7 @@ def run_semantic_segmentation(scene):
         unique_labels = np.delete(unique_labels, np.where(unique_labels == 0))
         for label in unique_labels:
             binary_mask = (sseg_vote == label).astype(np.uint8)
-            mask_color = np.random.random(3)
+            mask_color = COLOR[label % len(COLOR), 0:3]/255
             text = dataset_dict[label]
             draw_binary_mask(ax,
                              binary_mask,
@@ -248,8 +251,9 @@ def main():
                   'Home_004_2', 'Home_005_1', 'Home_005_2', 'Home_006_1', 'Home_007_1', 'Home_008_1',
                   'Home_010_1', 'Home_011_1', 'Home_013_1', 'Home_014_1', 'Home_014_2', 'Home_015_1',
                   'Home_016_1', 'Office_001_1']
+    scene_list = [scene_list[0]]
 
-    with multiprocessing.Pool(processes=8) as pool:
+    with multiprocessing.Pool(processes=1) as pool:
         args0 = scene_list
         pool.map(mp_run_wrapper, list(zip(args0)))
         pool.close()
