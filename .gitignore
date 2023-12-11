@@ -1,3 +1,6 @@
 output/
 __pycache__
 data/
+multi_view_verification_handpicked_frames/
+multi_view_verification_handpicked_frames.zip
+temp/

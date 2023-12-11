@@ -147,8 +147,9 @@ def compute_boundary_miou(gt_masks, pred_masks, small_segment_num_pixel_thresh=5
 saved_folder = 'output/comparison_results_ADE20K'
 data_folder = '/home/yimeng/ARGO_datasets/Datasets/ADE20K/Semantic_Segmentation'
 sam_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/ade20k_sam_results'
-sam_vote_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/ade20k_vote_sam_with_maskFormer_results'
-maskFormer_results_folder = '/home/yimeng/ARGO_scratch/sseg/MaskFormer/output/ade20k_maskformer_results'
+# sam_vote_results_folder = '/home/yimeng/ARGO_scratch/sseg/sseg_sam/output/ade20k_vote_sam_with_maskFormer_results'
+sam_vote_results_folder = '/home/yimeng/ARGO_scratch/auto_sseg_avd/sseg_sam/output/ade20k_MaskFormer_Detic_SAM_results'
+maskFormer_results_folder = '/home/yimeng/ARGO_scratch/auto_sseg_avd/sseg_sam/output/ade20k_maskformer_results'
 
 img_list = np.load(f'{data_folder}/val_img_list.npy', allow_pickle=True)
 # img_list = [img_list[143]]
@@ -174,7 +175,7 @@ for idx in range(len(img_list)):
 
     # load vote results
     sseg_vote = np.load(f'{sam_vote_results_folder}/{name}.npy', allow_pickle=True)
-    sseg_vote += 1
+    # sseg_vote += 1
 
     # compute maskFormer miou
     miou_maskFormer = compute_miou(sseg_gt, sseg_maskFormer)
@@ -187,7 +188,7 @@ for idx in range(len(img_list)):
         mIoU_small_objs_maskFormer_list.append(miou_small_obj_maskFormer)
 
     boundary_miou_maskFormer = compute_boundary_miou(sseg_gt, sseg_maskFormer)
-    print(f'boundary miou maskFormer = {boundary_miou_maskFormer}')
+    # print(f'boundary miou maskFormer = {boundary_miou_maskFormer}')
     boundary_mIoU_maskFormer_list.append(boundary_miou_maskFormer)
 
     # compute SAM vote miou
@@ -201,9 +202,12 @@ for idx in range(len(img_list)):
         mIoU_small_objs_vote_list.append(miou_small_obj_vote)
 
     boundary_miou_vote = compute_boundary_miou(sseg_gt, sseg_vote)
-    print(f'boundary miou SAM vote = {boundary_miou_vote}')
+    # print(f'boundary miou SAM vote = {boundary_miou_vote}')
     boundary_mIoU_vote_list.append(boundary_miou_vote)
 
+    print('-----------------------------------------------------------------------')
+
+    '''
     # load the image
     image = cv2.imread(f'{data_folder}/{img_dir}')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -222,6 +226,7 @@ for idx in range(len(img_list)):
     for idx in unique_labels:
         vis_sam[sseg_sam == idx] = np.random.random(3)
 
+    
     fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(15, 15))
     ax[0][0].imshow(image)
     ax[0][0].get_xaxis().set_visible(False)
@@ -253,6 +258,7 @@ for idx in range(len(img_list)):
     # plt.show()
     fig.savefig(f'{saved_folder}/{name}.jpg')
     plt.close()
+    '''
 
     # assert 1 == 2
 
