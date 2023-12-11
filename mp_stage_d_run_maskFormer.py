@@ -27,9 +27,13 @@ from detectron2.utils.logger import setup_logger
 from MaskFormer.mask_former import add_mask_former_config
 from MaskFormer.demo.predictor import VisualizationDemo
 
-
-# constants
+import matplotlib.pyplot as plt
+from constants import colormap
+from utils import _OFF_WHITE, draw_text, draw_binary_mask
+from constants import ade20k_dict
 WINDOW_NAME = "MaskFormer demo"
+
+COLOR = colormap(rgb=True)
 
 
 def setup_cfg(args):
@@ -102,6 +106,7 @@ if __name__ == "__main__":
                   'Home_004_2', 'Home_005_1', 'Home_005_2', 'Home_006_1', 'Home_007_1', 'Home_008_1',
                   'Home_010_1', 'Home_011_1', 'Home_013_1', 'Home_014_1', 'Home_014_2', 'Home_015_1',
                   'Home_016_1', 'Office_001_1']
+    scene_list = [scene_list[7]]
 
     for scene in scene_list:
         print(f'scene = {scene}')
@@ -112,7 +117,7 @@ if __name__ == "__main__":
         img_name_list = [os.path.splitext(os.path.basename(x))[0]
                          for x in sorted(glob.glob(f'{data_folder}/{scene}/jpg_rgb/*.jpg'))]
 
-        for img_name in img_name_list:
+        for img_name in img_name_list[70:]:
             print(f'name = {img_name}')
             path = f'{data_folder}/{scene}/jpg_rgb/{img_name}.jpg'
 
@@ -139,3 +144,28 @@ if __name__ == "__main__":
 
             sseg_img = sseg_img.astype(np.uint16)
             cv2.imwrite(f'{scene_folder}/{img_name}_maskFormer_labels.png', sseg_img)
+
+            sseg_img += 1
+            fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(20, 15))
+            ax.imshow(img[:, :, ::-1])
+            unique_labels = list(np.unique(sseg_img))
+            if 0 in unique_labels:
+                unique_labels = unique_labels[1:]
+
+            for label in unique_labels:
+                binary_mask = (sseg_img == label).astype(np.uint8)
+                mask_color = COLOR[label % len(COLOR), 0:3]/255
+                text = ade20k_dict[label]
+                draw_binary_mask(ax,
+                                 binary_mask,
+                                 color=mask_color,
+                                 edge_color=_OFF_WHITE,
+                                 text=text,
+                                 alpha=0.8,
+                                 )
+
+            ax.get_xaxis().set_visible(False)
+            ax.get_yaxis().set_visible(False)
+            fig.tight_layout()
+            fig.savefig(f'{scene_folder}/{img_name}_maskFormer_vis.jpg')
+            plt.close()

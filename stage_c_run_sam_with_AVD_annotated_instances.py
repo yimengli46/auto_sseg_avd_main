@@ -172,8 +172,12 @@ for scene in scene_list:
 
         cv2.imwrite(f'{saved_folder}/{img_name}_avd_instances_labels.png', img_mask)
 
+        results = {}
+        results['pred_boxes'] = pred_boxes
+        results['pred_classes'] = pred_classes
+        results['masks'] = masks
         with bz2.BZ2File(f'{saved_folder}/{img_name}_avd_instances_masks.pbz2', 'w') as fp:
             cPickle.dump(
-                masks,
+                results,
                 fp
             )

@@ -129,13 +129,13 @@ sam_predictor = SamPredictor(sam)
 # ============================= run on AVD =======================================
 
 data_folder = 'data/AVD_annotation-main'
-saved_folder = 'output/stage_b_sam_results/selected_images'
+saved_folder = 'output/exp_2_annotate_bottle_cap/selected_images'
 stage_a_result_folder = 'output/stage_a_Detic_results'
 
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
               'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
               'Home_015_1', 'Home_016_1']
-scene_list = [scene_list[0]]
+# scene_list = [scene_list[0]]
 
 for scene in scene_list:
     img_name_list = [os.path.splitext(os.path.basename(x))[0]
@@ -157,6 +157,17 @@ for scene in scene_list:
             scores = pred_dict['scores']
             pred_classes = pred_dict['pred_classes']
             # pred_masks = pred_dict['pred_masks']
+
+        # extract bottle cap
+        mask = (pred_classes == 203)
+        pred_classes = pred_classes[mask]
+        pred_boxes = pred_boxes[mask]
+        scores = scores[mask]
+
+        if pred_boxes.shape[0] == 0:
+            continue
+
+        print('===> this img has bottle caps')
 
         # run SAM
         masks = batch_segment_input_boxes(sam_predictor, image, pred_boxes)
@@ -185,7 +196,7 @@ for scene in scene_list:
         ax[0].imshow(image)
         for idx in range(masks.shape[0]):
             # print(f'mask.shape = {mask.shape}')
-            show_mask(masks[idx], ax[0], random_color=True)
+            show_mask(masks[idx], ax[0], random_color=False)
         for box in pred_boxes:
             show_box(box, ax[0])
         ax[0].get_xaxis().set_visible(False)

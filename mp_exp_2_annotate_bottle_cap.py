@@ -10,7 +10,8 @@ import sys
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
-from scipy import ndimage
+import multiprocessing
+import argparse
 import cv2
 sys.path.append("..")
 from segment_anything import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator  # NOQA
@@ -41,63 +42,8 @@ def show_box(box, ax):
     ax.add_patch(plt.Rectangle((x0, y0), w, h, edgecolor='green', facecolor=(0, 0, 0, 0), lw=2))
 
 
-def segment(sam_predictor, image, xyxy):
-    '''
-    single box segmentation
-    '''
-    sam_predictor.set_image(image)
-    masks = []
-    for box in pred_boxes:
-        mask, _, _ = sam_predictor.predict(
-            box=box,
-            multimask_output=False
-        )
-        masks.append(mask)
-    masks = np.array(masks)
-    return np.array(masks)
-
-
-def batch_segment_input_points_and_boxes(sam_predictor, image, boxes, masks):
-    H, W = image.shape[:2]
-    x = np.linspace(0, W - 1, W)
-    y = np.linspace(0, H - 1, H)
-    xv, yv = np.meshgrid(x, y)
-    image_coords = np.stack((xv, yv), axis=2)
-
-    sam_predictor.set_image(image)
-    boxes = torch.tensor(pred_boxes, device=sam_predictor.device)
-    transformed_boxes = sam_predictor.transform.apply_boxes_torch(boxes, (H, W))
-
-    # prepare points prompt
-    B = boxes.shape[0]
-    input_points = np.zeros((B, 2))
-    for i in range(B):
-        mask = masks[i]
-        mask_coords = image_coords[mask]
-        center_point = np.mean(mask_coords, axis=0)
-        norm = np.linalg.norm(mask_coords - center_point[None, :], axis=1)
-        min_idx = np.argmin(norm)
-        min_point = mask_coords[min_idx, :]
-        input_points[i] = min_point
-
-    input_points = torch.tensor(input_points, device=sam_predictor.device).unsqueeze(1)
-    transformed_points = sam_predictor.transform.apply_coords_torch(input_points, image.shape[:2])
-
-    input_labels = torch.ones((B, 1), device=sam_predictor.device)
-
-    masks, _, _ = sam_predictor.predict_torch(
-        point_coords=transformed_points,
-        point_labels=input_labels,
-        boxes=transformed_boxes,
-        multimask_output=False
-    )
-
-    masks = masks.cpu().numpy()
-
-    return masks
-
-
 def batch_segment_input_boxes(sam_predictor, image, boxes):
+    H, W = image.shape[:2]
     sam_predictor.set_image(image)
     boxes = torch.tensor(boxes, device=sam_predictor.device)
     transformed_boxes = sam_predictor.transform.apply_boxes_torch(boxes, (H, W))
@@ -114,49 +60,56 @@ def batch_segment_input_boxes(sam_predictor, image, boxes):
     return masks
 
 
-# =========================== initialize sam model =================================
-sam_checkpoint = "../segment-anything/model_weights/sam_vit_h_4b8939.pth"
-model_type = "vit_h"
+def run_sam_with_boxes_prompts(scene):
+    print(f'scene = {scene}')
+    # =========================== initialize sam model =================================
+    sam_checkpoint = "../segment-anything/model_weights/sam_vit_h_4b8939.pth"
+    model_type = "vit_h"
 
-device = "cuda"
+    device_id = gpu_Q.get()
+    device = f"cuda:{device_id}"
+    sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
+    sam.to(device=device)
 
-sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-sam.to(device=device)
+    sam_predictor = SamPredictor(sam)
 
-sam_predictor = SamPredictor(sam)
+    # ============================= run on AVD =======================================
+    data_folder = 'data/ActiveVisionDataset'
+    saved_folder = 'output/exp_2_annotate_bottle_cap/'
+    scene_folder = f'{saved_folder}/{scene}'
+    if not os.path.exists(scene_folder):
+        os.mkdir(scene_folder)
+    stage_a_result_folder = 'output/stage_a_Detic_results'
 
-
-# ============================= run on AVD =======================================
-
-data_folder = 'data/AVD_annotation-main'
-saved_folder = 'output/stage_b_sam_results/selected_images'
-stage_a_result_folder = 'output/stage_a_Detic_results'
-
-scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
-              'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
-              'Home_015_1', 'Home_016_1']
-scene_list = [scene_list[0]]
-
-for scene in scene_list:
     img_name_list = [os.path.splitext(os.path.basename(x))[0]
-                     for x in sorted(glob.glob(f'{data_folder}/{scene}/selected_images/*.jpg'))]
-    img_name_list = img_name_list[:5]
+                     for x in sorted(glob.glob(f'{data_folder}/{scene}/jpg_rgb/*.jpg'))]
+    # img_name_list = img_name_list[:6]
 
     for img_name in img_name_list:
         print(f'img_name = {img_name}')
 
-        image = cv2.imread(f'{data_folder}/{scene}/selected_images/{img_name}.jpg')
+        image = cv2.imread(f'{data_folder}/{scene}/jpg_rgb/{img_name}.jpg')
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         H, W = image.shape[:2]
 
         # load Detic boxes
-        with bz2.BZ2File(f'{stage_a_result_folder}/selected_images/{img_name}.pbz2', 'rb') as fp:
+        with bz2.BZ2File(f'{stage_a_result_folder}/{scene}/{img_name}.pbz2', 'rb') as fp:
             pred_dict = cPickle.load(fp)
             num_instances = pred_dict['num_instances']
             pred_boxes = pred_dict['pred_boxes'].astype(np.int32)
-            scores = pred_dict['scores']
             pred_classes = pred_dict['pred_classes']
             # pred_masks = pred_dict['pred_masks']
+
+        # extract bottle cap
+        mask = (pred_classes == 203)
+        pred_classes = pred_classes[mask]
+        pred_boxes = pred_boxes[mask]
+
+        if pred_boxes.shape[0] == 0:
+            continue
+
+        if num_instances == 0:
+            continue
 
         # run SAM
         masks = batch_segment_input_boxes(sam_predictor, image, pred_boxes)
@@ -185,7 +138,7 @@ for scene in scene_list:
         ax[0].imshow(image)
         for idx in range(masks.shape[0]):
             # print(f'mask.shape = {mask.shape}')
-            show_mask(masks[idx], ax[0], random_color=True)
+            show_mask(masks[idx], ax[0], random_color=False)
         for box in pred_boxes:
             show_box(box, ax[0])
         ax[0].get_xaxis().set_visible(False)
@@ -194,13 +147,49 @@ for scene in scene_list:
         ax[1].get_xaxis().set_visible(False)
         ax[1].get_yaxis().set_visible(False)
         fig.tight_layout()
-        fig.savefig(f'{saved_folder}/{img_name}_vis.jpg')
+        fig.savefig(f'{scene_folder}/{img_name}_vis.jpg')
         plt.close()
 
-        cv2.imwrite(f'{saved_folder}/{img_name}_mask_labels.png', img_mask)
+        cv2.imwrite(f'{scene_folder}/{img_name}_mask_labels.png', img_mask)
 
-        with bz2.BZ2File(f'{saved_folder}/{img_name}_masks.pbz2', 'w') as fp:
+        with bz2.BZ2File(f'{scene_folder}/{img_name}_masks.pbz2', 'w') as fp:
             cPickle.dump(
                 masks,
                 fp
             )
+
+    gpu_Q.put(device_id)
+    return
+
+
+def mp_run_wrapper(args):
+    run_sam_with_boxes_prompts(args[0])
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--j', type=int, required=False, default=1)
+    args = parser.parse_args()
+
+    scene_list = ['Home_001_1', 'Home_001_2', 'Home_002_1', 'Home_003_1', 'Home_003_2', 'Home_004_1',
+                  'Home_004_2', 'Home_005_1', 'Home_005_2', 'Home_006_1', 'Home_007_1', 'Home_008_1',
+                  'Home_010_1', 'Home_011_1', 'Home_013_1', 'Home_014_1', 'Home_014_2', 'Home_015_1',
+                  'Home_016_1', 'Office_001_1']
+
+    # ====================== get the available GPU devices ============================
+    visible_devices = os.environ["CUDA_VISIBLE_DEVICES"].split(",")
+    devices = [int(dev) for dev in visible_devices]
+
+    for device_id in devices:
+        for _ in range(args.j):
+            gpu_Q.put(device_id)
+
+    with multiprocessing.Pool(processes=1) as pool:
+        args0 = scene_list
+        pool.map(mp_run_wrapper, list(zip(args0)))
+        pool.close()
+
+
+if __name__ == "__main__":
+    gpu_Q = multiprocessing.Queue()
+    main()

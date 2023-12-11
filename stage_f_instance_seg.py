@@ -39,7 +39,7 @@ data_folder = 'data/AVD_annotation-main'
 scene_list = ['Home_001_1', 'Home_002_1', 'Home_003_1', 'Home_004_1', 'Home_005_1', 'Home_006_1',
               'Home_007_1', 'Home_008_1', 'Home_010_1', 'Home_011_1', 'Home_014_1', 'Home_014_2',
               'Home_015_1', 'Home_016_1']
-scene_list = [scene_list[0]]
+# scene_list = [scene_list[0]]
 
 for scene in scene_list:
     img_name_list = [os.path.splitext(os.path.basename(x))[0]
