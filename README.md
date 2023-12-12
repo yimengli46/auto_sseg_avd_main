@@ -65,4 +65,5 @@ auto_sseg_avd
   └── MaskFormer
   └── segment-anything
   └── auto_sseg_avd_main
+  └── auto_sseg_avd_VLN
 ```
