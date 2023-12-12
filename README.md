@@ -46,19 +46,23 @@ wget https://dl.fbaipublicfiles.com/maskformer/semantic-ade20k/maskformer_swin_l
 mkdir model_weights
 mv model_final_aefa3b.pkl model_weights
 
-# Install sseg-sam
+# Install auto_sseg_avd_vln
 cd auto_sseg_avd
-git clone https://github.com/yimengli46/sseg_sam.git
+git clone https://github.com/yimengli46/auto_sseg_avd_VLN.git
+
+# Install auto_sseg_avd_main
+cd auto_sseg_avd
+git clone https://github.com/yimengli46/auto_sseg_avd_main.git
 # create soft link to the datasets
 mkdir data
-ln -s /projects/kosecka/Datasets/ActiveVisionDataset/ ActiveVisionDataset
-ln -s /projects/kosecka/Datasets/AVD_annotation-main AVD_annotation-main
+ln -s Datasets/ActiveVisionDataset/ ActiveVisionDataset
+ln -s Datasets/AVD_annotation-main AVD_annotation-main
 ```
 After following all the steps, your working folder structure should look like this:
 ```
-auto_sseg_avd/
-				auto_sseg_avd_Detic/
-				MaskFormer/
-				segment-anything/
-				sseg_sam/
+auto_sseg_avd
+  └── auto_sseg_avd_Detic
+  └── MaskFormer
+  └── segment-anything
+  └── auto_sseg_avd_main
 ```
